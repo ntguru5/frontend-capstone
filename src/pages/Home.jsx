@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import LineGraph from '../components/LineGraph.jsx';
 import PieChart from '../components/PieChart.jsx';
 import BathroomLogModal from '../components/bathroomLogModal.jsx';
+import { bathroomApi } from '../api/axios.jsx';
 
 export default function Home() {
   const [isBathroomModalOpen, setIsBathroomModalOpen] = useState(false);
@@ -27,11 +28,13 @@ export default function Home() {
 
   const fetchBathroomData = async () => {
     try {
-      const response = await fetch('/api/bathroom-logs/stats');
-      const data = await response.json();
+      const data = await bathroomApi.getStats();
+      console.log(data);
       if (data.success) {
         // Calculate most common time from the logs
-        const times = data.data.pee.times.concat(data.data.poop.times);
+        const times = (data.data.pee?.times || []).concat(data.data.poop?.times || []);
+        console.log(times);
+
         const timeCount = times.reduce((acc, time) => {
           const hour = new Date(time).getHours();
           const formattedHour = new Date(time).toLocaleTimeString('en-US', {
@@ -42,26 +45,36 @@ export default function Home() {
           acc[hour] = acc[hour] || { count: 0, formatted: formattedHour };
           acc[hour].count++;
           return acc;
-        }, {});
+        }, {}); // Initial value added
 
-        const mostCommon = Object.entries(timeCount).reduce((a, b) =>
-          timeCount[a].count > timeCount[b].count ? a : b
-        );
+        let mostCommon = null;
+
+        if (Object.keys(timeCount).length > 0) {
+          mostCommon = Object.keys(timeCount).reduce((a, b) =>
+            timeCount[a].count > timeCount[b].count ? a : b
+          );
+        }
 
         const updatedData = {
           ...data.data,
-          mostCommonTime: {
-            time: timeCount[mostCommon].formatted,
-            description: getMostCommonTimeDescription(parseInt(mostCommon))
-          }
+          mostCommonTime: mostCommon
+            ? {
+                time: timeCount[mostCommon].formatted,
+                description: getMostCommonTimeDescription(parseInt(mostCommon))
+              }
+            : {
+                time: 'N/A',
+                description: 'No data available'
+              }
         };
 
         setBathroomData(updatedData);
       }
     } catch (err) {
-      console.error('Error fetching bathroom data:', err);
+      console.error('Error fetching bathroom data:', err.message);
     }
   };
+
 
   const getMostCommonTimeDescription = (hour) => {
     if (hour >= 5 && hour < 10) return 'Morning walk';
@@ -78,21 +91,11 @@ export default function Home() {
 
   const handleAddBathroomLog = async (logData) => {
     try {
-      const response = await fetch('/api/bathroom-logs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(logData)
-      });
-
-      if (!response.ok) throw new Error('Failed to add log');
-
-      // Refresh the data after adding a new log
+      await bathroomApi.create(logData);
       fetchBathroomData();
       setIsBathroomModalOpen(false);
     } catch (err) {
-      console.error('Error adding bathroom log:', err);
+      console.error('Error adding bathroom log:', err.message);
     }
   };
 

@@ -2,65 +2,137 @@ import { useState,useEffect } from 'react';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import BathroomLogModal from '../components/bathroomLogModal';
 import FeedingLogModal from '../components/feedingLogModal';
+import { bathroomApi, feedingApi } from '../api/axios';
 
 export default function Logs() {
   const [isBathroomModalOpen, setIsBathroomModalOpen] = useState(false);
   const [isFeedingModalOpen, setIsFeedingModalOpen] = useState(false);
+  const [behaviors, setBehaviors] = useState([]);
+  const [feeding, setFeeding] = useState([]);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [error, setError] = useState('');
 
-  const behaviors = [
-    { time: '08:00 AM', data: 'Morning walk - 20 minutes', id: 1 },
-    { time: '09:30 AM', data: 'Breakfast - 1 cup dry food', id: 2 },
-    { time: '02:00 PM', data: 'Afternoon nap', id: 3 },
-  ];
+  const fetchLogs = async () => {
+    try {
+      const [bathroomData, feedingData] = await Promise.all([
+        bathroomApi.getAll(),
+        feedingApi.getAll()
+      ]);
 
-  const feeding = [
-    { time: '09:30 AM', data: 'Dry food - 1 cup', id: 1 },
-    { time: '06:00 PM', data: 'Wet food - 1/2 can', id: 2 },
-  ];
+      setBehaviors(bathroomData.data || []);
+      setFeeding(feedingData.data || []);
+      setError('');
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching logs:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
 
   const handleAddBathroomLog = async (logData) => {
     try {
-      const response = await fetch('/api/bathroom-logs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(logData),
-      });
-
-      if (!response.ok) throw new Error('Failed to add bathroom log');
-      console.log('Bathroom log added successfully');
+      await bathroomApi.create(logData);
+      fetchLogs();
+      setIsBathroomModalOpen(false);
+      setError('');
     } catch (err) {
-      console.error('Error adding bathroom log:', err);
+      setError(err.message);
+      console.error('Error adding log:', err.message);
     }
   };
 
   const handleAddFeedingLog = async (logData) => {
     try {
-      const response = await fetch('/api/feeding', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(logData),
-      });
-
-      if (!response.ok) throw new Error('Failed to add feeding log');
-      console.log('Feeding log added successfully');
+      await feedingApi.create(logData);
+      fetchLogs();
+      setIsFeedingModalOpen(false);
+      setError('');
     } catch (err) {
-      console.error('Error adding feeding log:', err);
+      setError(err.message);
+      console.error('Error adding feeding log:', err.message);
     }
+  };
+
+  const handleDeleteBathroomLog = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this log?')) return;
+
+    try {
+      await bathroomApi.delete(id);
+      fetchLogs();
+      setError('');
+    } catch (err) {
+      setError(err.message);
+      console.error('Error deleting log:', err.message);
+    }
+  };
+
+  const handleDeleteFeedingLog = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this feeding log?')) return;
+
+    try {
+      await feedingApi.delete(id);
+      fetchLogs();
+      setError('');
+    } catch (err) {
+      setError(err.message);
+      console.error('Error deleting feeding log:', err.message);
+    }
+  };
+
+  const handleEditBathroomLog = async (logData) => {
+    try {
+      await bathroomApi.update(selectedLog._id, logData);
+      fetchLogs();
+      setSelectedLog(null);
+      setIsBathroomModalOpen(false);
+      setError('');
+    } catch (err) {
+      setError(err.message);
+      console.error('Error updating log:', err.message);
+    }
+  };
+
+  const handleEditFeedingLog = async (logData) => {
+    try {
+      await feedingApi.update(selectedLog._id, logData);
+      fetchLogs();
+      setSelectedLog(null);
+      setIsFeedingModalOpen(false);
+      setError('');
+    } catch (err) {
+      setError(err.message);
+      console.error('Error updating feeding log:', err.message);
+    }
+  };
+
+  const openBathroomModal = (log = null) => {
+    setSelectedLog(log);
+    setIsBathroomModalOpen(true);
+  };
+
+  const openFeedingModal = (log = null) => {
+    setSelectedLog(log);
+    setIsFeedingModalOpen(true);
   };
 
   return (
     <div className="p-8 ml-20">
       <h1 className="text-2xl font-bold mb-8 text-gray-800">Activity Logs</h1>
 
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-700">Behaviors</h2>
           <button
-            onClick={() => setIsBathroomModalOpen(true)}
+            onClick={() => openBathroomModal()}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <Plus size={16} />
@@ -78,14 +150,24 @@ export default function Logs() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {behaviors.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.time}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{item.data}</td>
+                <tr key={item._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {new Date(item.date).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {`${item.type}${item.notes ? ` - ${item.notes}` : ''}`}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">
+                    <button
+                      onClick={() => openBathroomModal(item)}
+                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                    >
                       <Pencil size={16} />
                     </button>
-                    <button className="text-red-600 hover:text-red-900">
+                    <button
+                      onClick={() => handleDeleteBathroomLog(item._id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </td>
@@ -100,7 +182,7 @@ export default function Logs() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-700">Feeding</h2>
           <button
-            onClick={() => setIsFeedingModalOpen(true)}
+            onClick={() => openFeedingModal()}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <Plus size={16} />
@@ -118,14 +200,24 @@ export default function Logs() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {feeding.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.time}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{item.data}</td>
+                <tr key={item._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {new Date(item.date).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {`${item.foodType} - ${item.amount} ${item.brand ? `(${item.brand})` : ''}`}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">
+                    <button
+                      onClick={() => openFeedingModal(item)}
+                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                    >
                       <Pencil size={16} />
                     </button>
-                    <button className="text-red-600 hover:text-red-900">
+                    <button
+                      onClick={() => handleDeleteFeedingLog(item._id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </td>
@@ -138,14 +230,22 @@ export default function Logs() {
 
       <BathroomLogModal
         isOpen={isBathroomModalOpen}
-        onClose={() => setIsBathroomModalOpen(false)}
-        onSubmit={handleAddBathroomLog}
+        onClose={() => {
+          setIsBathroomModalOpen(false);
+          setSelectedLog(null);
+        }}
+        onSubmit={selectedLog ? handleEditBathroomLog : handleAddBathroomLog}
+        initialData={selectedLog}
       />
 
       <FeedingLogModal
         isOpen={isFeedingModalOpen}
-        onClose={() => setIsFeedingModalOpen(false)}
-        onSubmit={handleAddFeedingLog}
+        onClose={() => {
+          setIsFeedingModalOpen(false);
+          setSelectedLog(null);
+        }}
+        onSubmit={selectedLog ? handleEditFeedingLog : handleAddFeedingLog}
+        initialData={selectedLog}
       />
     </div>
   );

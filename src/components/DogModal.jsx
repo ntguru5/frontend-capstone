@@ -96,7 +96,7 @@ export default function DogModal({ isOpen, onClose, dog, onSubmit }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Weight (kg)</label>
+              <label className="block text-sm font-medium text-gray-700">Weight (lbs)</label>
               <input
                 type="number"
                 value={formData.weight}

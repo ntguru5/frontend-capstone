@@ -11,13 +11,12 @@ export default function Profile() {
 // Fetch dogs
   const fetchDogs = async () => {
     try {
-      const response = await fetch('/api/dogs');
-      if (!response.ok) throw new Error('Failed to fetch dogs');
-      const data = await response.json();
-      setDogs(Array.isArray(data) ? data : data.data || []);
+      const data = await dogApi.getAll();
+      setDogs(data.data || []);
+      setError('');
     } catch (err) {
       setError('Failed to fetch dogs');
-      console.error('Error fetching dogs:', err);
+      console.error('Error fetching dogs:', err.message);
     }
   };
 
@@ -27,41 +26,25 @@ export default function Profile() {
 
   const handleAdd = async (dogData) => {
     try {
-      const response = await fetch('/api/dogs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dogData),
-      });
-
-      if (!response.ok) throw new Error('Failed to add dog');
-
+      await dogApi.create(dogData);
       fetchDogs();
+      setIsModalOpen(false);
       setError('');
     } catch (err) {
       setError('Failed to add dog');
-      console.error('Error adding dog:', err);
+      console.error('Error adding dog:', err.message);
     }
   };
 
   const handleEdit = async (dogData) => {
     try {
-      const response = await fetch(`/api/dogs/${dogData._id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dogData),
-      });
-
-      if (!response.ok) throw new Error('Failed to update dog');
-
+      await dogApi.update(dogData._id, dogData);
       fetchDogs();
+      setIsModalOpen(false);
       setError('');
     } catch (err) {
       setError('Failed to update dog');
-      console.error('Error updating dog:', err);
+      console.error('Error updating dog:', err.message);
     }
   };
 
@@ -69,21 +52,15 @@ export default function Profile() {
     if (!window.confirm('Are you sure you want to delete this dog?')) return;
 
     try {
-      const response = await fetch(`/api/dogs/${dogId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete dog');
-
+      await dogApi.delete(dogId);
       fetchDogs();
       setError('');
     } catch (err) {
       setError('Failed to delete dog');
-      console.error('Error deleting dog:', err);
+      console.error('Error deleting dog:', err.message);
     }
   };
 
-  // Open modal for adding or editing
   const openModal = (dog = null) => {
     setSelectedDog(dog);
     setIsModalOpen(true);

@@ -1,4 +1,4 @@
-import { Home, Clock, User, Code } from 'lucide-react';
+import { Home, Clock, User, Code, TestTube } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 export default function Navigation() {
@@ -8,7 +8,8 @@ export default function Navigation() {
     { icon: Home, label: 'Home', path: '/' },
     { icon: Clock, label: 'Logs', path: '/logs' },
     { icon: User, label: 'Profile', path: '/profile' },
-    { icon: Code, label: 'API', path: '/api' }
+    { icon: Code, label: 'API', path: '/api' },
+    { icon: TestTube, label: 'Test', path: '/api-test' }
   ];
 
   return (
