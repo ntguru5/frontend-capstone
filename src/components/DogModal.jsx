@@ -9,7 +9,7 @@ export default function DogModal({ isOpen, onClose, dog, onSubmit }) {
     weight: '',
     gender: 'male',
     ownerName: '',
-    imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=200&h=200'
+    imageUrl: 'https://cdn.pixabay.com/photo/2024/03/28/18/06/dog-8661433_1280.png'
   });
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function DogModal({ isOpen, onClose, dog, onSubmit }) {
                     alt="Preview"
                     className="w-24 h-24 rounded-full object-cover"
                     onError={(e) => {
-                      e.target.src = 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=200&h=200';
+                      e.target.src = 'https://cdn.pixabay.com/photo/2024/03/28/18/06/dog-8661433_1280.png';
                     }}
                   />
                 </div>
