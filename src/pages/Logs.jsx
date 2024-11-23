@@ -131,7 +131,7 @@ export default function Logs() {
 
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-700">Behaviors</h2>
+          <h2 className="text-lg font-semibold text-gray-700">Bathroom</h2>
           <button
             onClick={() => openBathroomModal()}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"

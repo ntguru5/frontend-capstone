@@ -11,7 +11,7 @@ export default function Profile() {
 
   const fetchDogs = async () => {
     try {
-      const { data } = await axios.get('/');
+      const { data } = await axios.get('/api/dogs');
       setDogs(data.data || []);
       console.log(data.data);
       setError('');

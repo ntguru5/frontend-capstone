@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const APITest = () => {
+export default function APITest () {
   console.log('component mounted');
-  const [dogProfile, setDogProfile] = useState({});
+  const [dogProfile, setDogProfile] = useState([]);
 
   useEffect(() => {
     fetchDogProfile();
@@ -31,17 +31,5 @@ const APITest = () => {
     <p>Breed: {dogProfile.breed}</p>
     <p>Age: {dogProfile.age}</p>
   </div>
-    // <div>
-    //   <h1>Dog Profile</h1>
-    //   {dogProfile.map((profile) => (
-    //     <div key={profile._id}>
-    //       <p>Name: {profile.name}</p>
-    //       <p>Breed: {profile.breed}</p>
-    //       <p>Age: {profile.age}</p>
-    //     </div>
-    //   ))}
-    // </div>
   );
 };
-
-export default APITest;
