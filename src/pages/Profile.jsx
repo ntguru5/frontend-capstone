@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import DogModal from '../components/DogModal';
 
@@ -8,11 +9,11 @@ export default function Profile() {
   const [selectedDog, setSelectedDog] = useState(null);
   const [error, setError] = useState('');
 
-// Fetch dogs
   const fetchDogs = async () => {
     try {
-      const data = await dogApi.getAll();
+      const { data } = await axios.get('/');
       setDogs(data.data || []);
+      console.log(data.data);
       setError('');
     } catch (err) {
       setError('Failed to fetch dogs');
@@ -26,7 +27,7 @@ export default function Profile() {
 
   const handleAdd = async (dogData) => {
     try {
-      await dogApi.create(dogData);
+      await axios.post('/api/dogs', dogData);
       fetchDogs();
       setIsModalOpen(false);
       setError('');
@@ -38,9 +39,10 @@ export default function Profile() {
 
   const handleEdit = async (dogData) => {
     try {
-      await dogApi.update(dogData._id, dogData);
+      await axios.patch(`/api/dogs/${dogData._id}`, dogData);
       fetchDogs();
       setIsModalOpen(false);
+      setSelectedDog(null);
       setError('');
     } catch (err) {
       setError('Failed to update dog');
@@ -52,7 +54,7 @@ export default function Profile() {
     if (!window.confirm('Are you sure you want to delete this dog?')) return;
 
     try {
-      await dogApi.delete(dogId);
+      await axios.delete(`/api/dogs/${dogId}`);
       fetchDogs();
       setError('');
     } catch (err) {

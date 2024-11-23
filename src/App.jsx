@@ -4,6 +4,7 @@ import Home from './pages/Home.jsx';
 import Logs from './pages/Logs.jsx';
 import Profile from './pages/Profile.jsx';
 import API from './pages/API.jsx';
+import APITest from './pages/APITest.jsx';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/logs" element={<Logs />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/api" element={<API />} />
+          <Route path="/test" element={<APITest />} />
         </Routes>
       </div>
     </Router>

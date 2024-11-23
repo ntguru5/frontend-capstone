@@ -1,8 +1,9 @@
 import { useState,useEffect } from 'react';
+import axios from 'axios';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import BathroomLogModal from '../components/bathroomLogModal';
 import FeedingLogModal from '../components/feedingLogModal';
-import { bathroomApi, feedingApi } from '../api/axios';
+// import { bathroomApi, feedingApi } from '../api/axios.js';
 
 export default function Logs() {
   const [isBathroomModalOpen, setIsBathroomModalOpen] = useState(false);
@@ -15,12 +16,12 @@ export default function Logs() {
   const fetchLogs = async () => {
     try {
       const [bathroomData, feedingData] = await Promise.all([
-        bathroomApi.getAll(),
-        feedingApi.getAll()
+        axios.get('/api/bathroom-logs'),
+        axios.get('/api/feeding')
       ]);
 
-      setBehaviors(bathroomData.data || []);
-      setFeeding(feedingData.data || []);
+      setBehaviors(bathroomData.data.data || []);
+      setFeeding(feedingData.data.data || []);
       setError('');
     } catch (err) {
       setError(err.message);
@@ -34,7 +35,7 @@ export default function Logs() {
 
   const handleAddBathroomLog = async (logData) => {
     try {
-      await bathroomApi.create(logData);
+      await axios.post('/api/bathroom-logs', logData);
       fetchLogs();
       setIsBathroomModalOpen(false);
       setError('');
@@ -46,7 +47,7 @@ export default function Logs() {
 
   const handleAddFeedingLog = async (logData) => {
     try {
-      await feedingApi.create(logData);
+      await axios.post('/api/feeding', logData);
       fetchLogs();
       setIsFeedingModalOpen(false);
       setError('');
@@ -60,7 +61,7 @@ export default function Logs() {
     if (!window.confirm('Are you sure you want to delete this log?')) return;
 
     try {
-      await bathroomApi.delete(id);
+      await axios.delete(`/api/bathroom-logs/${id}`);
       fetchLogs();
       setError('');
     } catch (err) {
@@ -73,7 +74,7 @@ export default function Logs() {
     if (!window.confirm('Are you sure you want to delete this feeding log?')) return;
 
     try {
-      await feedingApi.delete(id);
+      await axios.delete(`/api/feeding/${id}`);
       fetchLogs();
       setError('');
     } catch (err) {
@@ -84,7 +85,7 @@ export default function Logs() {
 
   const handleEditBathroomLog = async (logData) => {
     try {
-      await bathroomApi.update(selectedLog._id, logData);
+      await axios.patch(`/api/bathroom-logs/${selectedLog._id}`, logData);
       fetchLogs();
       setSelectedLog(null);
       setIsBathroomModalOpen(false);
@@ -97,7 +98,7 @@ export default function Logs() {
 
   const handleEditFeedingLog = async (logData) => {
     try {
-      await feedingApi.update(selectedLog._id, logData);
+      await axios.patch(`/api/feeding/${selectedLog._id}`, logData);
       fetchLogs();
       setSelectedLog(null);
       setIsFeedingModalOpen(false);

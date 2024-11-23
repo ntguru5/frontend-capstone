@@ -9,7 +9,7 @@ export default function Navigation() {
     { icon: Clock, label: 'Logs', path: '/logs' },
     { icon: User, label: 'Profile', path: '/profile' },
     { icon: Code, label: 'API', path: '/api' },
-    { icon: TestTube, label: 'Test', path: '/api-test' }
+    { icon: TestTube, label: 'Test', path: '/test' }
   ];
 
   return (

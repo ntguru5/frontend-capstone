@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Plus } from 'lucide-react';
 import LineGraph from '../components/LineGraph.jsx';
 import PieChart from '../components/PieChart.jsx';
 import BathroomLogModal from '../components/bathroomLogModal.jsx';
-import { bathroomApi } from '../api/axios.jsx';
+// import { bathroomApi } from '../api/axios.js';
 
 export default function Home() {
   const [isBathroomModalOpen, setIsBathroomModalOpen] = useState(false);
@@ -28,53 +29,50 @@ export default function Home() {
 
   const fetchBathroomData = async () => {
     try {
-      const data = await bathroomApi.getStats();
-      console.log(data);
+      const { data } = await axios.get('/api/bathroom-logs/stats');
       if (data.success) {
         // Calculate most common time from the logs
-        const times = (data.data.pee?.times || []).concat(data.data.poop?.times || []);
-        console.log(times);
+        const times = data.data.pee.times.concat(data.data.poop.times);
+        if (times.length > 0) {
+          const timeCount = times.reduce((acc, time) => {
+            const hour = new Date(time).getHours();
+            const formattedHour = new Date(time).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+            acc[hour] = acc[hour] || { count: 0, formatted: formattedHour };
+            acc[hour].count++;
+            return acc;
+          }, {});
 
-        const timeCount = times.reduce((acc, time) => {
-          const hour = new Date(time).getHours();
-          const formattedHour = new Date(time).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          });
-          acc[hour] = acc[hour] || { count: 0, formatted: formattedHour };
-          acc[hour].count++;
-          return acc;
-        }, {}); // Initial value added
-
-        let mostCommon = null;
-
-        if (Object.keys(timeCount).length > 0) {
-          mostCommon = Object.keys(timeCount).reduce((a, b) =>
+          const mostCommon = Object.entries(timeCount).reduce((a, b) =>
             timeCount[a].count > timeCount[b].count ? a : b
-          );
+          )[0];
+
+          const updatedData = {
+            ...data.data,
+            mostCommonTime: {
+              time: timeCount[mostCommon].formatted,
+              description: getMostCommonTimeDescription(parseInt(mostCommon))
+            }
+          };
+
+          setBathroomData(updatedData);
+        } else {
+          setBathroomData({
+            ...data.data,
+            mostCommonTime: {
+              time: 'N/A',
+              description: 'No data available'
+            }
+          });
         }
-
-        const updatedData = {
-          ...data.data,
-          mostCommonTime: mostCommon
-            ? {
-                time: timeCount[mostCommon].formatted,
-                description: getMostCommonTimeDescription(parseInt(mostCommon))
-              }
-            : {
-                time: 'N/A',
-                description: 'No data available'
-              }
-        };
-
-        setBathroomData(updatedData);
       }
     } catch (err) {
       console.error('Error fetching bathroom data:', err.message);
     }
   };
-
 
   const getMostCommonTimeDescription = (hour) => {
     if (hour >= 5 && hour < 10) return 'Morning walk';
@@ -91,7 +89,7 @@ export default function Home() {
 
   const handleAddBathroomLog = async (logData) => {
     try {
-      await bathroomApi.create(logData);
+      await axios.post('/api/bathroom-logs', logData);
       fetchBathroomData();
       setIsBathroomModalOpen(false);
     } catch (err) {
@@ -160,9 +158,7 @@ export default function Home() {
           <div className="bg-white p-6 rounded-xl shadow-md">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Average Urination</h3>
             <p className="text-2xl font-semibold text-gray-900">
-              {bathroomData.pee.data.length > 0
-                ? (bathroomData.pee.data.reduce((a, b) => a + b, 0) / bathroomData.pee.data.length).toFixed(1)
-                : '0'}x/day
+              {bathroomData.pee.data.reduce((a, b) => a + b, 0) / Math.max(1, bathroomData.pee.data.length)}x/day
             </p>
             <p className="text-sm text-gray-500 mt-1">Last 7 days</p>
           </div>
@@ -170,9 +166,7 @@ export default function Home() {
           <div className="bg-white p-6 rounded-xl shadow-md">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Average Defecation</h3>
             <p className="text-2xl font-semibold text-gray-900">
-              {bathroomData.poop.data.length > 0
-                ? (bathroomData.poop.data.reduce((a, b) => a + b, 0) / bathroomData.poop.data.length).toFixed(1)
-                : '0'}x/day
+              {bathroomData.poop.data.reduce((a, b) => a + b, 0) / Math.max(1, bathroomData.poop.data.length)}x/day
             </p>
             <p className="text-sm text-gray-500 mt-1">Last 7 days</p>
           </div>

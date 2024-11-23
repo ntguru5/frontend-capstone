@@ -10,6 +10,7 @@ export default function API() {
     try {
       setLoading(true);
       const response = await fetch('https://dog.ceo/api/breeds/image/random');
+      console.log(response);
       const data = await response.json();
       if (data.status === 'success') {
         setDogImage(data.message);
