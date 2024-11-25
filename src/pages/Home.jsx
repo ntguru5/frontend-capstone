@@ -53,6 +53,7 @@ export default function Home() {
     }
   };
 
+  // Calculate the most common time
   const getMostCommonTime = () => {
     const allData = [...bathroomData.pee.data, ...bathroomData.poop.data];
     const total = allData.reduce((a, b) => a + b, 0);
