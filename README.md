@@ -2,6 +2,8 @@
 
 A modern, responsive web application for tracking pet care activities including bathroom habits, feeding schedules, and pet profiles.
 
+Link to backend project [backend_capstone](https://github.com/ntguru5/backend_capstone).
+
 ## Features
 
 - 📊 Interactive Dashboard
