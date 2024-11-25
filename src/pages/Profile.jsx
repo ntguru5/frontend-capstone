@@ -139,7 +139,7 @@ export default function Profile() {
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Weight</dt>
-                    <dd className="text-sm text-gray-900">{dog.weight} kg</dd>
+                    <dd className="text-sm text-gray-900">{dog.weight} lbs</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Gender</dt>
