@@ -152,3 +152,4 @@ Common utility classes:
 - Integrate authentication.
 - Complete Axios centralization.
 - Create option to select pet profile on home page if you have multiple pets.
+- Create a chart on Home page to calculate what time of day is most active for bathroom activity.
