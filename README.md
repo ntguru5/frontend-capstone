@@ -86,7 +86,7 @@ npm run dev
 ## Component Usage
 
 ### Dashboard Charts
-
+Example usage:
 ```jsx
 import LineGraph from '../components/LineGraph';
 import PieChart from '../components/PieChart';
@@ -106,7 +106,7 @@ import PieChart from '../components/PieChart';
 ```
 
 ### Activity Modals
-
+Example usage:
 ```jsx
 import BathroomLogModal from '../components/BathroomLogModal';
 import FeedingLogModal from '../components/FeedingLogModal';
